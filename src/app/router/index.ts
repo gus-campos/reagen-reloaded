@@ -11,7 +11,7 @@ const routes = [
   },
   {
     path: '/auth',
-    meta: { layout: 'default' },
+    meta: { layout: 'base' },
     children: [{ path: '', component: AuthView }],
   },
 ];

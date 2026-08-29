@@ -17,6 +17,10 @@
 
   const { handleSubmit } = useForm({
     validationSchema: toTypedSchema(schema),
+    initialValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const { value: email, errorMessage: emailError } = useField<string>('email');
@@ -24,7 +28,7 @@
 
   // Submissão
 
-  const submit = handleSubmit(async (values) => {
+  const submitForm = handleSubmit(async (values) => {
     loading.value = true;
     try {
       alert(JSON.stringify(values));
@@ -35,18 +39,30 @@
 </script>
 
 <template>
-  <v-sheet>
-    <v-form @submit.prevent="submit">
-      <v-text-field v-model="email" label="Email" type="email" :error-messages="emailError" />
+  <div class="auth-container">
+    <v-sheet :max-width="400" :min-width="400" class="pa-8">
+      <v-form @submit.prevent="submitForm">
+        <v-text-field v-model="email" label="Email" type="email" :error-messages="emailError" />
 
-      <v-text-field
-        v-model="password"
-        label="Senha"
-        type="password"
-        :error-messages="passwordError"
-      />
+        <v-text-field
+          v-model="password"
+          label="Senha"
+          type="password"
+          :error-messages="passwordError"
+        />
 
-      <v-btn :loading="loading" class="mt-2" text="Submit" type="submit" block />
-    </v-form>
-  </v-sheet>
+        <v-btn :loading="loading" class="mt-2" text="Submit" type="submit" block />
+      </v-form>
+    </v-sheet>
+  </div>
 </template>
+
+<style scoped>
+  .auth-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+</style>

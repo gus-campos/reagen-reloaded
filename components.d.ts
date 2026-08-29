@@ -14,6 +14,7 @@ declare module 'vue' {
     App: typeof import('./src/app/App.vue')['default']
     AuthenticatedLayout: typeof import('./src/layouts/AuthenticatedLayout.vue')['default']
     AuthView: typeof import('./src/views/AuthView.vue')['default']
+    BaseLayout: typeof import('./src/layouts/BaseLayout.vue')['default']
     DefaultLayout: typeof import('./src/layouts/DefaultLayout.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElContainer: typeof import('element-plus/es')['ElContainer']

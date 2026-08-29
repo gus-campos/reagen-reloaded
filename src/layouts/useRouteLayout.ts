@@ -1,10 +1,10 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import BaseLayout from './BaseLayout.vue';
 
 const LAYOUTS = {
-  default: DefaultLayout,
+  base: BaseLayout,
   authenticated: AuthenticatedLayout,
 };
 type LayoutKey = keyof typeof LAYOUTS;
