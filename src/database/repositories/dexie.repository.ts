@@ -6,7 +6,7 @@ import type { CreationDto, GetOptions, Repository, UpdateDto } from '../reposito
 export class DexieRepository<TEntity extends Entity<Id<string>>> implements Repository<TEntity> {
   constructor(
     private readonly table: Table<TEntity, TEntity['id']>,
-    private readonly generateId: () => TEntity['id'] = () => crypto.randomUUID() as TEntity['id'],
+    private readonly generateId: () => TEntity['id'],
     private readonly now: () => Dayjs,
   ) {}
 
