@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { useRouteLayout } from '@/layouts/useRouteLayout';
+  import { useRouteLayout } from '@/app/layouts/use-route-layout';
   const { layout } = useRouteLayout();
 </script>
 

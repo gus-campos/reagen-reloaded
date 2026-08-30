@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
-import { generateId, now } from '@/database/persistence.dependencies';
-import { Dimension, Unit } from '@/features/size/unit.type';
+import { generateId, now } from '@/infrastructure/database/persistence.dependencies';
+import { Dimension, Unit } from '@/shared/measurement/unit.type';
 
-import { InMemoryRepository } from '@/test-utils/in-memory.repository';
+import { InMemoryRepository } from '@tests/utils/in-memory.repository';
 import { ReagentService } from '@/features/reagent/reagent.service';
 import type { Reagent } from '@/features/reagent/reagent.type';
-import { useEntityStore } from '@/shared/use-entity-store';
+import { useEntityCrud } from '@/shared/composables/use-entity-crud';
 
 const reagentDto = {
   name: 'Acetona',
@@ -20,7 +20,7 @@ describe('useEntityCrud with reagents', () => {
 
   function createStore() {
     const service = new ReagentService(new InMemoryRepository<Reagent>(generateId, now));
-    return defineStore('reagents', () => useEntityStore(service))();
+    return defineStore('reagents', () => useEntityCrud(service))();
   }
 
   it('loads and keeps the active reagents in reactive state', async () => {
@@ -63,7 +63,7 @@ describe('useEntityCrud with reagents', () => {
     }
 
     const store = defineStore('reagents', () =>
-      useEntityStore(new ReagentService(new FailingRepository(generateId, now))),
+      useEntityCrud(new ReagentService(new FailingRepository(generateId, now))),
     )();
 
     await expect(store.load()).rejects.toThrow('Banco indisponível');

@@ -5,7 +5,7 @@ import { createPinia } from 'pinia';
 import vuetify from '@/app/plugins/vuetify.ts';
 
 // Estilo
-import '@/styles/main.scss';
+import '@/app/styles/main.scss';
 import 'vuetify/styles';
 
 // App

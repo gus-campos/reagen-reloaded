@@ -12,11 +12,11 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     App: typeof import('./src/app/App.vue')['default']
-    AuthenticatedLayout: typeof import('./src/layouts/AuthenticatedLayout.vue')['default']
-    AuthView: typeof import('./src/views/AuthView.vue')['default']
-    BaseLayout: typeof import('./src/layouts/BaseLayout.vue')['default']
+    AuthenticatedLayout: typeof import('./src/app/layouts/AuthenticatedLayout.vue')['default']
+    BaseLayout: typeof import('./src/app/layouts/BaseLayout.vue')['default']
+    LoginView: typeof import('./src/features/authentication/views/LoginView.vue')['default']
+    RegistrationsLayoutView: typeof import('./src/features/registrations/views/RegistrationsLayoutView.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TableView: typeof import('./src/views/TableView.vue')['default']
   }
 }
