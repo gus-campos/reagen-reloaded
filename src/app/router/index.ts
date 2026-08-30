@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { registrationsRoutes } from '@/features/registrations/registrations.routes';
 import LoginView from '@/features/authentication/LoginView.vue';
+import RegistrationsLayoutView from '@/features/registrations/RegistrationsLayoutView.vue';
 
 // Filhos herdam meta do pai, logo será o layout pai, a menos que sobrescrito
 const routes = [
@@ -10,7 +10,11 @@ const routes = [
     component: LoginView,
     meta: { layout: 'base' },
   },
-  ...registrationsRoutes,
+  {
+    path: '/cadastros',
+    component: RegistrationsLayoutView,
+    meta: { layout: 'authenticated' },
+  },
 ];
 
 const router = createRouter({
