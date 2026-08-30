@@ -7,9 +7,9 @@ export class NamedOptionService<TEntity extends NamedOption<Id<string>>> {
 
   async create(name: string): Promise<TEntity> {
     const normalizedName = this.normalizeName(name);
-    const options = await this.repository.getAll({ getDeleted: true });
+    const options = await this.repository.getAll();
 
-    if (options.some((option) => this.normalizeName(option.name) === normalizedName)) {
+    if (options.some((option) => this.comparisonName(option.name) === this.comparisonName(normalizedName))) {
       throw new Error('Já existe uma opção com este nome.');
     }
 
@@ -28,5 +28,9 @@ export class NamedOptionService<TEntity extends NamedOption<Id<string>>> {
     if (!normalizedName) throw new Error('Informe um nome.');
 
     return normalizedName;
+  }
+
+  private comparisonName(name: string): string {
+    return this.normalizeName(name).toLocaleLowerCase('pt-BR');
   }
 }
