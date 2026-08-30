@@ -1,0 +1,14 @@
+import type { Id } from '@/database/persistence.types';
+import type { NamedOption } from './shared/named-option.type';
+
+export type ControlAgencyId = Id<'ControlAgency'>;
+export type ControlAgency = NamedOption<ControlAgencyId>;
+
+export type SupplierId = Id<'Supplier'>;
+export type Supplier = NamedOption<SupplierId>;
+
+export type LaboratoryId = Id<'Laboratory'>;
+export type Laboratory = NamedOption<LaboratoryId>;
+
+export type FundingSourceId = Id<'FundingSource'>;
+export type FundingSource = NamedOption<FundingSourceId>;
