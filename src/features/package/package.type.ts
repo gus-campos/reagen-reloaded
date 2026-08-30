@@ -2,7 +2,7 @@ import type { Dayjs } from 'dayjs';
 import type { Entity, Id } from '@/database/persistence.types';
 import type { ReagentId } from '@/features/reagent/reagent.type';
 import type { Size } from '@/features/size/size.type';
-import type { AcquirerId, SupplierId } from '../named-options/options.type';
+import type { AcquirerId, SupplierId } from '@/features/named-options/options.type';
 
 export type PackageId = Id<'Package'>;
 

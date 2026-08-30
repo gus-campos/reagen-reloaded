@@ -1,5 +1,5 @@
-import type { Acquirer, ControlAgency, Laboratory, Supplier } from './options.type';
-import { NamedOptionService } from './shared/named-option.service';
+import type { Acquirer, ControlAgency, Laboratory, Supplier } from '@/features/named-options/options.type';
+import { NamedOptionService } from '@/features/named-options/shared/named-option.service';
 
 export class ControlAgencyService extends NamedOptionService<ControlAgency> {}
 

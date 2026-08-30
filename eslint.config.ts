@@ -28,5 +28,23 @@ export default defineConfigWithVueTs(
 
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
+  {
+    name: 'app/absolute-imports',
+    files: ['src/**/*.{vue,ts,mts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['./*', '../*'],
+              message: 'Use imports absolutos com @/ em vez de imports relativos.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   skipFormatting,
 );

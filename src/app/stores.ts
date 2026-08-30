@@ -7,7 +7,7 @@ import {
   reagentService,
   supplierService,
   vialService,
-} from './services';
+} from '@/app/services';
 import { useEntityStore } from '@/shared/use-entity-store';
 
 export const useControlAgencyStore = defineStore('control-agencies', () =>

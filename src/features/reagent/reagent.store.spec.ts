@@ -4,8 +4,8 @@ import { generateId, now } from '@/database/persistence.dependencies';
 import { Dimension, Unit } from '@/features/size/unit.type';
 
 import { InMemoryRepository } from '@/test-utils/in-memory.repository';
-import { ReagentService } from './reagent.service';
-import type { Reagent } from './reagent.type';
+import { ReagentService } from '@/features/reagent/reagent.service';
+import type { Reagent } from '@/features/reagent/reagent.type';
 import { useEntityStore } from '@/shared/use-entity-store';
 
 const reagentDto = {

@@ -1,7 +1,7 @@
 import { ref, type Ref } from 'vue';
 import type { Entity, Id } from '@/database/persistence.types';
 import type { CreationDto, UpdateDto } from '@/database/repository';
-import { EntityService } from './entity.service';
+import { EntityService } from '@/shared/entity.service';
 
 export function useEntityStore<TEntity extends Entity<Id<string>>>(
   service: EntityService<TEntity>,

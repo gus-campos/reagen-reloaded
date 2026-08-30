@@ -1,7 +1,7 @@
 import type { Id } from '@/database/persistence.types';
 import type { CreationDto, Repository, UpdateDto } from '@/database/repository';
 
-import type { NamedOption } from './named-option.type';
+import type { NamedOption } from '@/features/named-options/shared/named-option.type';
 import { EntityService } from '@/shared/entity.service';
 
 export class NamedOptionService<

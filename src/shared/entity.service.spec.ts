@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { generateId, now } from '@/database/persistence.dependencies';
 import type { Entity, Id } from '@/database/persistence.types';
 import { InMemoryRepository } from '@/test-utils/in-memory.repository';
-import { EntityService } from './entity.service';
+import { EntityService } from '@/shared/entity.service';
 
 type TestEntity = Entity<Id<'TestEntity'>> & { name: string };
 

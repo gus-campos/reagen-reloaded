@@ -1,7 +1,7 @@
 import { type Dayjs } from 'dayjs';
 import type { Table } from 'dexie';
-import type { Entity, Id } from '../persistence.types';
-import type { CreationDto, GetOptions, Repository, UpdateDto } from '../repository';
+import type { Entity, Id } from '@/database/persistence.types';
+import type { CreationDto, GetOptions, Repository, UpdateDto } from '@/database/repository';
 
 export class DexieRepository<TEntity extends Entity<Id<string>>> implements Repository<TEntity> {
   constructor(

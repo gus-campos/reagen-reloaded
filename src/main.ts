@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 
 // Plugins
-import vuetify from './app/plugins/vuetify.ts';
+import vuetify from '@/app/plugins/vuetify.ts';
 
 // Estilo
 import '@/styles/main.scss';

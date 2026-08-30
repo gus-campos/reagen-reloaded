@@ -1,7 +1,7 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
-import BaseLayout from './BaseLayout.vue';
+import BaseLayout from '@/layouts/BaseLayout.vue';
 
 const LAYOUTS = {
   base: BaseLayout,

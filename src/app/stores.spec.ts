@@ -8,7 +8,7 @@ import {
   useReagentStore,
   useSupplierStore,
   useVialStore,
-} from './stores';
+} from '@/app/stores';
 
 describe('application stores', () => {
   beforeEach(() => setActivePinia(createPinia()));

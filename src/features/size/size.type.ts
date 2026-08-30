@@ -1,4 +1,4 @@
-import type { Unit } from './unit.type';
+import type { Unit } from '@/features/size/unit.type';
 
 export type Size = {
   amount: number;
