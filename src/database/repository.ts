@@ -1,4 +1,4 @@
-import type { Entity, Id, ManagedFields } from './persistence.types';
+import type { Entity, Id, ManagedFields } from '@/database/persistence.types';
 
 export type CreationDto<TEntity extends Entity<Id<string>>> = Omit<TEntity, ManagedFields>;
 

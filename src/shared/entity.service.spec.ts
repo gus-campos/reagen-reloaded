@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { generateId, now } from '@/database/persistence.dependencies';
 import type { Entity, Id } from '@/database/persistence.types';
 import { InMemoryRepository } from '@/test-utils/in-memory.repository';
 import { EntityService } from './entity.service';
@@ -7,7 +8,7 @@ type TestEntity = Entity<Id<'TestEntity'>> & { name: string };
 
 describe('EntityService', () => {
   it('returns only active records after a soft delete', async () => {
-    const service = new EntityService(new InMemoryRepository<TestEntity>());
+    const service = new EntityService(new InMemoryRepository<TestEntity>(generateId, now));
     const entity = await service.create({ name: 'Opção' });
 
     await expect(service.getAll()).resolves.toMatchObject([{ id: entity.id }]);
@@ -16,7 +17,7 @@ describe('EntityService', () => {
   });
 
   it('updates an active record and preserves its identity', async () => {
-    const service = new EntityService(new InMemoryRepository<TestEntity>());
+    const service = new EntityService(new InMemoryRepository<TestEntity>(generateId, now));
     const entity = await service.create({ name: 'Antes' });
 
     await expect(service.update(entity.id, { name: 'Depois' })).resolves.toMatchObject({

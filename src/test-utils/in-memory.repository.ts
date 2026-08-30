@@ -1,15 +1,20 @@
-import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import type { Entity, Id } from '@/database/persistence.types';
 import type { CreationDto, GetOptions, Repository, UpdateDto } from '@/database/repository';
 
 export class InMemoryRepository<TEntity extends Entity<Id<string>>> implements Repository<TEntity> {
   private readonly entities: TEntity[] = [];
 
+  constructor(
+    private readonly generateId: () => TEntity['id'],
+    private readonly now: () => Dayjs,
+  ) {}
+
   async create(dto: CreationDto<TEntity>): Promise<TEntity> {
-    const timestamp = dayjs();
+    const timestamp = this.now();
     const entity = {
       ...dto,
-      id: crypto.randomUUID() as TEntity['id'],
+      id: this.generateId(),
       createdAt: timestamp,
       updatedAt: timestamp,
       deletedAt: null,
@@ -33,7 +38,7 @@ export class InMemoryRepository<TEntity extends Entity<Id<string>>> implements R
     const entity = await this.get(id);
     if (!entity) return null;
 
-    Object.assign(entity, dto, { updatedAt: dayjs() });
+    Object.assign(entity, dto, { updatedAt: this.now() });
     return entity;
   }
 
@@ -41,7 +46,7 @@ export class InMemoryRepository<TEntity extends Entity<Id<string>>> implements R
     const entity = await this.get(id);
     if (!entity) return false;
 
-    entity.deletedAt = dayjs();
+    entity.deletedAt = this.now();
     return true;
   }
 }

@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { generateId, now } from '@/database/persistence.dependencies';
 import { Dimension, Unit } from '@/features/size/unit.type';
-import { useEntityStore } from '@/features/shared/use-entity-crud';
+
 import { InMemoryRepository } from '@/test-utils/in-memory.repository';
 import { ReagentService } from './reagent.service';
 import type { Reagent } from './reagent.type';
+import { useEntityStore } from '@/shared/use-entity-store';
 
 const reagentDto = {
   name: 'Acetona',
@@ -17,7 +19,7 @@ describe('useEntityCrud with reagents', () => {
   beforeEach(() => setActivePinia(createPinia()));
 
   function createStore() {
-    const service = new ReagentService(new InMemoryRepository<Reagent>());
+    const service = new ReagentService(new InMemoryRepository<Reagent>(generateId, now));
     return defineStore('reagents', () => useEntityStore(service))();
   }
 
@@ -61,7 +63,7 @@ describe('useEntityCrud with reagents', () => {
     }
 
     const store = defineStore('reagents', () =>
-      useEntityStore(new ReagentService(new FailingRepository())),
+      useEntityStore(new ReagentService(new FailingRepository(generateId, now))),
     )();
 
     await expect(store.load()).rejects.toThrow('Banco indisponível');
