@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { useEntityStore } from '@/features/shared/use-entity-crud';
 import {
   controlAgencyService,
-  fundingSourceService,
+  acquirerService,
   laboratoryService,
   packageService,
   reagentService,
@@ -14,8 +14,8 @@ export const useControlAgencyStore = defineStore('control-agencies', () =>
   useEntityStore(controlAgencyService),
 );
 
-export const useFundingSourceStore = defineStore('funding-sources', () =>
-  useEntityStore(fundingSourceService),
+export const useAcquirerStore = defineStore('acquirers', () =>
+  useEntityStore(acquirerService),
 );
 
 export const useLaboratoryStore = defineStore('laboratories', () => useEntityStore(laboratoryService));

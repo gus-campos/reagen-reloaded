@@ -2,8 +2,8 @@ import dayjs from 'dayjs';
 import { appDatabase } from '@/database/app.database';
 import { DexieRepository } from '@/database/repositories/dexie.repository';
 import {
+  AcquirerService,
   ControlAgencyService,
-  FundingSourceService,
   LaboratoryService,
   SupplierService,
 } from '@/features/named-options/options.service';
@@ -21,8 +21,8 @@ export const controlAgencyService = new ControlAgencyService(
   new DexieRepository(appDatabase.controlAgencies, undefined, now),
 );
 
-export const fundingSourceService = new FundingSourceService(
-  new DexieRepository(appDatabase.fundingSources, undefined, now),
+export const acquirerService = new AcquirerService(
+  new DexieRepository(appDatabase.acquirers, undefined, now),
 );
 
 export const laboratoryService = new LaboratoryService(

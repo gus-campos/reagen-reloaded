@@ -1,7 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import type {
+  Acquirer,
   ControlAgency,
-  FundingSource,
   Laboratory,
   Supplier,
 } from '@/features/named-options/options.type';
@@ -10,8 +10,8 @@ import type { Reagent } from '@/features/reagent/reagent.type';
 import type { Vial } from '@/features/vial/vial.type';
 
 export class AppDatabase extends Dexie {
+  acquirers!: Table<Acquirer, Acquirer['id']>;
   controlAgencies!: Table<ControlAgency, ControlAgency['id']>;
-  fundingSources!: Table<FundingSource, FundingSource['id']>;
   laboratories!: Table<Laboratory, Laboratory['id']>;
   packages!: Table<Package, Package['id']>;
   reagents!: Table<Reagent, Reagent['id']>;
@@ -30,6 +30,24 @@ export class AppDatabase extends Dexie {
       packages: '&id, reagentId, fundingSourceId, supplierId, deletedAt',
       vials: '&id, packageId, laboratoryId, deletedAt',
     });
+
+    this.version(2)
+      .stores({
+        acquirers: '&id, name, deletedAt',
+        packages: '&id, reagentId, acquirerId, supplierId, deletedAt',
+      })
+      .upgrade(async (transaction) => {
+        const legacyAcquirers = await transaction.table('fundingSources').toArray();
+        await transaction.table('acquirers').bulkPut(legacyAcquirers);
+
+        await transaction.table('packages').toCollection().modify((item) => {
+          const legacyPackage = item as { acquirerId?: unknown; fundingSourceId?: unknown };
+          legacyPackage.acquirerId = legacyPackage.fundingSourceId ?? null;
+          delete legacyPackage.fundingSourceId;
+        });
+      });
+
+    this.version(3).stores({ fundingSources: null });
   }
 }
 

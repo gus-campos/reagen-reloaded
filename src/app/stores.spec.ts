@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import {
   useControlAgencyStore,
-  useFundingSourceStore,
+  useAcquirerStore,
   useLaboratoryStore,
   usePackageStore,
   useReagentStore,
@@ -16,7 +16,7 @@ describe('application stores', () => {
   it('registers one store for each persisted entity', () => {
     const stores = [
       useControlAgencyStore(),
-      useFundingSourceStore(),
+      useAcquirerStore(),
       useLaboratoryStore(),
       usePackageStore(),
       useReagentStore(),
@@ -26,7 +26,7 @@ describe('application stores', () => {
 
     expect(stores.map((store) => store.$id)).toEqual([
       'control-agencies',
-      'funding-sources',
+      'acquirers',
       'laboratories',
       'packages',
       'reagents',

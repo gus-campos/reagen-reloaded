@@ -10,5 +10,5 @@ export type Supplier = NamedOption<SupplierId>;
 export type LaboratoryId = Id<'Laboratory'>;
 export type Laboratory = NamedOption<LaboratoryId>;
 
-export type FundingSourceId = Id<'FundingSource'>;
-export type FundingSource = NamedOption<FundingSourceId>;
+export type AcquirerId = Id<'Acquirer'>;
+export type Acquirer = NamedOption<AcquirerId>;
