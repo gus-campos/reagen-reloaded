@@ -1,9 +1,8 @@
 import type { Dayjs } from 'dayjs';
 import type { Entity, Id } from '@/database/persistence.types';
-import type { FundingSourceId } from '@/features/named-options/funding-source.type';
 import type { ReagentId } from '@/features/reagent/reagent.type';
 import type { Size } from '@/features/size/size.type';
-import type { SupplierId } from '@/features/named-options/supplier.type';
+import type { FundingSourceId, SupplierId } from '../named-options/options.type';
 
 export type PackageId = Id<'Package'>;
 
