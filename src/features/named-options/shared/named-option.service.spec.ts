@@ -39,4 +39,17 @@ describe('NamedOptionService', () => {
       name: 'laboratório central',
     });
   });
+
+  it('normalizes updates and rejects a name already used by another active option', async () => {
+    const service = new NamedOptionService(new InMemoryRepository<TestOption>());
+    const first = await service.create('Laboratório Central');
+    const second = await service.create('Laboratório de Química');
+
+    await expect(service.update(second.id, { name: '  laboratório central ' })).rejects.toThrow(
+      'Já existe uma opção com este nome.',
+    );
+    await expect(service.update(first.id, { name: ' Laboratório   Principal ' })).resolves.toMatchObject({
+      name: 'Laboratório Principal',
+    });
+  });
 });
