@@ -1,4 +1,4 @@
-import type { Unit } from '@/shared/measurement/unit.type';
+import type { Unit } from '@/shared/types/unit.type';
 
 export type Size = {
   amount: number;

@@ -1,7 +1,7 @@
 import type { Entity, Id } from '@/infrastructure/database/persistence.types';
 import type { ControlAgencyId } from '@/features/named-options/options.type';
-import type { Size } from '@/shared/measurement/size.type';
-import type { Dimension } from '@/shared/measurement/unit.type';
+import type { Size } from '@/shared/types/size.type';
+import type { Dimension } from '@/shared/types/unit.type';
 
 export type ReagentId = Id<'Reagent'>;
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { generateId, now } from '@/infrastructure/database/persistence.dependencies';
-import { Dimension, Unit } from '@/shared/measurement/unit.type';
+import { Dimension, Unit } from '@/shared/types/unit.type';
 
 import { InMemoryRepository } from '@tests/utils/in-memory.repository';
 import { ReagentService } from '@/features/reagent/reagent.service';
