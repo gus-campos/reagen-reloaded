@@ -3,7 +3,7 @@ import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { generateId, now } from '@/infrastructure/database/persistence.dependencies';
 import { Dimension, Unit } from '@/shared/types/unit.type';
 
-import { InMemoryRepository } from '@tests/utils/in-memory.repository';
+import { InMemoryReagentRepository } from '@tests/utils/in-memory-feature-repositories';
 import { ReagentService } from '@/features/reagent/reagent.service';
 import type { Reagent } from '@/features/reagent/reagent.type';
 import { useEntityCrud } from '@/shared/composables/use-entity-crud';
@@ -19,7 +19,7 @@ describe('useEntityCrud with reagents', () => {
   beforeEach(() => setActivePinia(createPinia()));
 
   function createStore() {
-    const service = new ReagentService(new InMemoryRepository<Reagent>(generateId, now));
+    const service = new ReagentService(new InMemoryReagentRepository(generateId, now));
     return defineStore('reagents', () => useEntityCrud(service))();
   }
 
@@ -56,7 +56,7 @@ describe('useEntityCrud with reagents', () => {
   });
 
   it('exposes failures to the interface and releases the loading state', async () => {
-    class FailingRepository extends InMemoryRepository<Reagent> {
+    class FailingRepository extends InMemoryReagentRepository {
       override async getAll(): Promise<Reagent[]> {
         throw new Error('Banco indisponível');
       }
