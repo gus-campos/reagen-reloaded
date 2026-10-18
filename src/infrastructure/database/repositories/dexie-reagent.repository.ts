@@ -5,6 +5,10 @@ import { DexieRepository } from '@/infrastructure/database/repositories/dexie.re
 
 export class DexieReagentRepository extends DexieRepository<Reagent> implements ReagentRepository {
   findByControlAgencyId(id: ControlAgencyId): Promise<Reagent[]> {
-    return this.table.where('controlAgencyId').equals(id).filter((item) => item.deletedAt === null).toArray();
+    return this.table
+      .where('controlAgencyId')
+      .equals(id)
+      .filter((item) => item.deletedAt === null)
+      .toArray();
   }
 }

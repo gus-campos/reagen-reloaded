@@ -1,13 +1,11 @@
 import type { Id } from '@/infrastructure/database/persistence.types';
-import type {
-  CreationDto,
-  Repository,
-  UpdateDto,
-} from '@/infrastructure/database/repository';
+import type { CreationDto, Repository, UpdateDto } from '@/infrastructure/database/repository';
 import type { NamedOption } from '@/features/named-options/named-option.type';
 import { EntityService } from '@/shared/services/entity.service';
 
-export class NamedOptionService<TEntity extends NamedOption<Id<string>>> extends EntityService<TEntity> {
+export class NamedOptionService<
+  TEntity extends NamedOption<Id<string>>,
+> extends EntityService<TEntity> {
   constructor(repository: Repository<TEntity>) {
     super(repository);
   }
@@ -17,7 +15,11 @@ export class NamedOptionService<TEntity extends NamedOption<Id<string>>> extends
   async create(input: string | CreationDto<TEntity>): Promise<TEntity> {
     const normalizedName = this.normalizeName(typeof input === 'string' ? input : input.name);
     const options = await super.getAll();
-    if (options.some((option) => this.comparisonName(option.name) === this.comparisonName(normalizedName))) {
+    if (
+      options.some(
+        (option) => this.comparisonName(option.name) === this.comparisonName(normalizedName),
+      )
+    ) {
       throw new Error('Já existe uma opção com este nome.');
     }
     return super.create({ name: normalizedName } as CreationDto<TEntity>);

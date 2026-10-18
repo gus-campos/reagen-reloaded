@@ -6,16 +6,28 @@ import { DexieRepository } from '@/infrastructure/database/repositories/dexie.re
 
 export class DexiePackageRepository extends DexieRepository<Package> implements PackageRepository {
   findByAcquirerId(id: AcquirerId): Promise<Package[]> {
-    return this.table.where('acquirerId').equals(id).filter((item) => item.deletedAt === null).toArray();
+    return this.table
+      .where('acquirerId')
+      .equals(id)
+      .filter((item) => item.deletedAt === null)
+      .toArray();
   }
 
   findByReagentIds(ids: ReadonlySet<ReagentId>): Promise<Package[]> {
     if (ids.size === 0) return Promise.resolve([]);
 
-    return this.table.where('reagentId').anyOf([...ids]).filter((item) => item.deletedAt === null).toArray();
+    return this.table
+      .where('reagentId')
+      .anyOf([...ids])
+      .filter((item) => item.deletedAt === null)
+      .toArray();
   }
 
   findBySupplierId(id: SupplierId): Promise<Package[]> {
-    return this.table.where('supplierId').equals(id).filter((item) => item.deletedAt === null).toArray();
+    return this.table
+      .where('supplierId')
+      .equals(id)
+      .filter((item) => item.deletedAt === null)
+      .toArray();
   }
 }
