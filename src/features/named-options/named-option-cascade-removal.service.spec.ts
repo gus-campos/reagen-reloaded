@@ -116,9 +116,10 @@ describe('NamedOptionCascadeRemovalService', () => {
       vials: 1,
     });
     await expect(sut.service.remove({ kind: 'control-agency', id: agency.id })).resolves.toEqual({
-      reagents: 1,
-      packages: 1,
-      vials: 1,
+      impact: { reagents: 1, packages: 1, vials: 1 },
+      reagentIds: new Set([reagent.id]),
+      packageIds: new Set([packageItem.id]),
+      vialIds: new Set([vial.id]),
     });
 
     expect(sut.transactionCount()).toBe(1);
@@ -143,10 +144,8 @@ describe('NamedOptionCascadeRemovalService', () => {
       outDate: null,
     });
 
-    await expect(sut.service.remove({ kind: 'acquirer', id: acquirer.id })).resolves.toEqual({
-      reagents: 0,
-      packages: 1,
-      vials: 1,
+    await expect(sut.service.remove({ kind: 'acquirer', id: acquirer.id })).resolves.toMatchObject({
+      impact: { reagents: 0, packages: 1, vials: 1 },
     });
 
     await expect(sut.reagentService.get(reagent.id)).resolves.not.toBeNull();
@@ -168,10 +167,8 @@ describe('NamedOptionCascadeRemovalService', () => {
       outDate: null,
     });
 
-    await expect(sut.service.remove({ kind: 'supplier', id: supplier.id })).resolves.toEqual({
-      reagents: 0,
-      packages: 1,
-      vials: 1,
+    await expect(sut.service.remove({ kind: 'supplier', id: supplier.id })).resolves.toMatchObject({
+      impact: { reagents: 0, packages: 1, vials: 1 },
     });
 
     await expect(sut.packageService.get(packageItem.id)).resolves.toBeNull();
@@ -189,10 +186,10 @@ describe('NamedOptionCascadeRemovalService', () => {
       outDate: null,
     });
 
-    await expect(sut.service.remove({ kind: 'laboratory', id: laboratory.id })).resolves.toEqual({
-      reagents: 0,
-      packages: 0,
-      vials: 1,
+    await expect(
+      sut.service.remove({ kind: 'laboratory', id: laboratory.id }),
+    ).resolves.toMatchObject({
+      impact: { reagents: 0, packages: 0, vials: 1 },
     });
 
     await expect(sut.reagentService.get(reagent.id)).resolves.not.toBeNull();

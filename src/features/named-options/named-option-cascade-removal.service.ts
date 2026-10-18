@@ -4,6 +4,10 @@ import type {
   LaboratoryId,
   SupplierId,
 } from '@/features/named-options/options.type';
+import type {
+  NamedOptionByKind,
+  NamedOptionKind,
+} from '@/features/named-options/named-option-kind';
 import type { PackageId } from '@/features/package/package.type';
 import { PackageService } from '@/features/package/package.service';
 import type { ReagentId } from '@/features/reagent/reagent.type';
@@ -24,19 +28,21 @@ export type CascadeRemovalImpact = {
   vials: number;
 };
 
-export type NamedOptionRemovalTarget =
-  | { kind: 'control-agency'; id: ControlAgencyId }
-  | { kind: 'acquirer'; id: AcquirerId }
-  | { kind: 'laboratory'; id: LaboratoryId }
-  | { kind: 'supplier'; id: SupplierId };
+export type NamedOptionRemovalTarget = {
+  [K in NamedOptionKind]: { kind: K; id: NamedOptionByKind[K]['id'] };
+}[NamedOptionKind];
 
 export type TransactionRunner = <T>(operation: () => Promise<T>) => Promise<T>;
 
-type RemovalPlan = {
+export type CascadeRemovalResult = {
   impact: CascadeRemovalImpact;
   reagentIds: ReadonlySet<ReagentId>;
   packageIds: ReadonlySet<PackageId>;
   vialIds: ReadonlySet<VialId>;
+};
+
+type RemovalPlan = {
+  result: CascadeRemovalResult;
   removeOption: () => Promise<boolean>;
 };
 
@@ -54,27 +60,28 @@ export class NamedOptionCascadeRemovalService {
 
   async preview(target: NamedOptionRemovalTarget): Promise<CascadeRemovalImpact | null> {
     const plan = await this.buildPlan(target);
-    return plan?.impact ?? null;
+    return plan?.result.impact ?? null;
   }
 
-  async remove(target: NamedOptionRemovalTarget): Promise<CascadeRemovalImpact | null> {
+  async remove(target: NamedOptionRemovalTarget): Promise<CascadeRemovalResult | null> {
     return this.removePlan(() => this.buildPlan(target));
   }
 
   private async removePlan(
     buildPlan: () => Promise<RemovalPlan | null>,
-  ): Promise<CascadeRemovalImpact | null> {
+  ): Promise<CascadeRemovalResult | null> {
     return this.runInTransaction(async () => {
       const plan = await buildPlan();
       if (!plan) return null;
 
-      for (const vialId of plan.vialIds) await this.vialService.remove(vialId);
-      for (const packageId of plan.packageIds) await this.packageService.remove(packageId);
-      for (const reagentId of plan.reagentIds) await this.reagentService.remove(reagentId);
+      const { vialIds, packageIds, reagentIds } = plan.result;
+      for (const vialId of vialIds) await this.vialService.remove(vialId);
+      for (const packageId of packageIds) await this.packageService.remove(packageId);
+      for (const reagentId of reagentIds) await this.reagentService.remove(reagentId);
 
       await plan.removeOption();
 
-      return plan.impact;
+      return plan.result;
     });
   }
 
@@ -145,12 +152,13 @@ export class NamedOptionCascadeRemovalService {
     removeOption: () => Promise<boolean>,
   ): RemovalPlan {
     return {
-      reagentIds,
-      packageIds,
-      vialIds,
+      result: {
+        reagentIds,
+        packageIds,
+        vialIds,
+        impact: { reagents: reagentIds.size, packages: packageIds.size, vials: vialIds.size },
+      },
       removeOption,
-      impact: { reagents: reagentIds.size, packages: packageIds.size, vials: vialIds.size },
     };
   }
-
 }

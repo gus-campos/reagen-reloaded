@@ -4,7 +4,12 @@ import { DexieRepository } from '@/infrastructure/database/repositories/dexie.re
 import { DexiePackageRepository } from '@/infrastructure/database/repositories/dexie-package.repository';
 import { DexieReagentRepository } from '@/infrastructure/database/repositories/dexie-reagent.repository';
 import { DexieVialRepository } from '@/infrastructure/database/repositories/dexie-vial.repository';
-import type { Acquirer, ControlAgency, Laboratory, Supplier } from '@/features/named-options/options.type';
+import type {
+  Acquirer,
+  ControlAgency,
+  Laboratory,
+  Supplier,
+} from '@/features/named-options/options.type';
 import {
   NamedOptionCascadeRemovalService,
   type TransactionRunner,
@@ -32,7 +37,9 @@ export const reagentService = new ReagentService(
 export const supplierService = new NamedOptionService<Supplier>(
   new DexieRepository<Supplier>(appDatabase.suppliers, generateId, now),
 );
-export const vialService = new VialService(new DexieVialRepository(appDatabase.vials, generateId, now));
+export const vialService = new VialService(
+  new DexieVialRepository(appDatabase.vials, generateId, now),
+);
 
 const runNamedOptionTransaction: TransactionRunner = (operation) =>
   appDatabase.transaction(

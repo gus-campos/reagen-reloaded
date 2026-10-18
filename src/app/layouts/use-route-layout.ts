@@ -8,11 +8,18 @@ type LayoutKey = keyof typeof LAYOUTS;
 
 export function useRouteLayout() {
   const route = useRoute();
-  const layoutKey = (route.meta?.layout ?? null) as LayoutKey | null;
 
-  if (layoutKey && !(layoutKey in LAYOUTS)) {
-    throw new Error(`Layout key "${layoutKey}" not found.`);
-  }
+  // Lido dentro do computed para reagir à navegação entre rotas com layouts diferentes.
+  const layout = computed(() => {
+    const layoutKey = (route.meta?.layout ?? null) as LayoutKey | null;
+    if (!layoutKey) return null;
 
-  return { layout: computed(() => (!layoutKey ? null : LAYOUTS[layoutKey])) };
+    if (!(layoutKey in LAYOUTS)) {
+      throw new Error(`Layout key "${layoutKey}" not found.`);
+    }
+
+    return LAYOUTS[layoutKey];
+  });
+
+  return { layout };
 }

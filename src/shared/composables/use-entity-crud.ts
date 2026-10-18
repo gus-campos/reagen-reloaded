@@ -3,7 +3,15 @@ import type { Entity, Id } from '@/infrastructure/database/persistence.types';
 import type { CreationDto, UpdateDto } from '@/infrastructure/database/repository';
 import { EntityService } from '@/shared/services/entity.service';
 
-export function useEntityCrud<TEntity extends Entity<Id<string>>>(service: EntityService<TEntity>) {
+export type EntityCrudOptions<TEntity extends Entity<Id<string>>> = {
+  remove?: (id: TEntity['id']) => Promise<boolean>;
+};
+
+export function useEntityCrud<TEntity extends Entity<Id<string>>>(
+  service: EntityService<TEntity>,
+  options: EntityCrudOptions<TEntity> = {},
+) {
+  const removeEntity = options.remove ?? ((id: TEntity['id']) => service.remove(id));
   const items = ref([]) as Ref<TEntity[]>;
   const loading = ref(false);
   const error = ref<Error | null>(null);
@@ -42,10 +50,16 @@ export function useEntityCrud<TEntity extends Entity<Id<string>>>(service: Entit
   }
 
   async function remove(id: TEntity['id']): Promise<boolean> {
-    const removed = await run(() => service.remove(id));
-    if (removed) items.value = items.value.filter((item) => item.id !== id);
+    const removed = await run(() => removeEntity(id));
+    if (removed) evict(new Set([id]));
     return removed;
   }
 
-  return { items, loading, error, load, create, update, remove };
+  // Remove itens apenas do estado local, sem persistir (ex.: após remoção em cascata).
+  function evict(ids: ReadonlySet<TEntity['id']>): void {
+    if (ids.size === 0) return;
+    items.value = items.value.filter((item) => !ids.has(item.id));
+  }
+
+  return { items, loading, error, load, create, update, remove, evict };
 }
