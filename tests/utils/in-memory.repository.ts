@@ -34,7 +34,9 @@ export class InMemoryRepository<TEntity extends Entity<Id<string>>> implements R
   }
 
   async getAll(options?: GetOptions): Promise<TEntity[]> {
-    return options?.getDeleted ? this.entities : this.entities.filter((entity) => entity.deletedAt === null);
+    return options?.getDeleted
+      ? this.entities
+      : this.entities.filter((entity) => entity.deletedAt === null);
   }
 
   async update(id: TEntity['id'], dto: UpdateDto<TEntity>): Promise<TEntity | null> {

@@ -46,7 +46,9 @@ describe('NamedOptionService', () => {
     await expect(service.update(second.id, { name: '  laboratório central ' })).rejects.toThrow(
       'Já existe uma opção com este nome.',
     );
-    await expect(service.update(first.id, { name: ' Laboratório   Principal ' })).resolves.toMatchObject({
+    await expect(
+      service.update(first.id, { name: ' Laboratório   Principal ' }),
+    ).resolves.toMatchObject({
       name: 'Laboratório Principal',
     });
   });

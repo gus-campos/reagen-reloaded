@@ -22,6 +22,14 @@ describe('application stores', () => {
       useReagentStore().$id,
       useSupplierStore().$id,
       useVialStore().$id,
-    ]).toEqual(['control-agencies', 'acquirers', 'laboratories', 'packages', 'reagents', 'suppliers', 'vials']);
+    ]).toEqual([
+      'control-agencies',
+      'acquirers',
+      'laboratories',
+      'packages',
+      'reagents',
+      'suppliers',
+      'vials',
+    ]);
   });
 });
