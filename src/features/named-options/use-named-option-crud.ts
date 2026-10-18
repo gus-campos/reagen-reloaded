@@ -41,6 +41,8 @@ export function useNamedOptionCrud<TKind extends NamedOptionKind>(
       const result = await removalService.remove(target(id));
       if (!result) return false;
 
+      // Importante para permitir evict dos itens excluídos, que do
+      // contrários sumiriam do banco, mas continuariam disponíveis na store
       onCascadeRemoved(result);
       return true;
     },
