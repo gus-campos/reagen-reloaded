@@ -37,7 +37,7 @@ export function useNamedOptionCrud<TKind extends NamedOptionKind>(
   const target = (id: OptionId) => ({ kind, id }) as NamedOptionRemovalTarget;
 
   const crud = useEntityCrud(service, {
-    async remove(id) {
+    remove: async (id) => {
       const result = await removalService.remove(target(id));
       if (!result) return false;
 

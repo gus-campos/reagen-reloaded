@@ -41,11 +41,6 @@ export type CascadeRemovalResult = {
   vialIds: ReadonlySet<VialId>;
 };
 
-type RemovalPlan = {
-  result: CascadeRemovalResult;
-  removeOption: () => Promise<boolean>;
-};
-
 export class NamedOptionCascadeRemovalService {
   constructor(
     private readonly runInTransaction: TransactionRunner,
@@ -59,46 +54,54 @@ export class NamedOptionCascadeRemovalService {
   ) {}
 
   async preview(target: NamedOptionRemovalTarget): Promise<CascadeRemovalImpact | null> {
-    const plan = await this.buildPlan(target);
-    return plan?.result.impact ?? null;
+    const plan = await this.plan(target);
+    return plan?.impact ?? null;
   }
 
+  // O plano é refeito dentro da transação para refletir o estado atual, não o do preview.
   async remove(target: NamedOptionRemovalTarget): Promise<CascadeRemovalResult | null> {
-    return this.removePlan(() => this.buildPlan(target));
-  }
-
-  private async removePlan(
-    buildPlan: () => Promise<RemovalPlan | null>,
-  ): Promise<CascadeRemovalResult | null> {
     return this.runInTransaction(async () => {
-      const plan = await buildPlan();
+      const plan = await this.plan(target);
       if (!plan) return null;
 
-      const { vialIds, packageIds, reagentIds } = plan.result;
+      const { vialIds, packageIds, reagentIds } = plan;
       for (const vialId of vialIds) await this.vialService.remove(vialId);
       for (const packageId of packageIds) await this.packageService.remove(packageId);
       for (const reagentId of reagentIds) await this.reagentService.remove(reagentId);
 
-      await plan.removeOption();
+      await this.removeOption(target);
 
-      return plan.result;
+      return plan;
     });
   }
 
-  private buildPlan(target: NamedOptionRemovalTarget): Promise<RemovalPlan | null> {
+  private plan(target: NamedOptionRemovalTarget): Promise<CascadeRemovalResult | null> {
     switch (target.kind) {
       case 'control-agency':
-        return this.buildControlAgencyPlan(target.id);
+        return this.planControlAgency(target.id);
       case 'acquirer':
-        return this.buildAcquirerPlan(target.id);
+        return this.planAcquirer(target.id);
       case 'laboratory':
-        return this.buildLaboratoryPlan(target.id);
+        return this.planLaboratory(target.id);
       case 'supplier':
-        return this.buildSupplierPlan(target.id);
+        return this.planSupplier(target.id);
     }
   }
 
-  private async buildControlAgencyPlan(id: ControlAgencyId): Promise<RemovalPlan | null> {
+  private removeOption(target: NamedOptionRemovalTarget): Promise<boolean> {
+    switch (target.kind) {
+      case 'control-agency':
+        return this.controlAgencyService.remove(target.id);
+      case 'acquirer':
+        return this.acquirerService.remove(target.id);
+      case 'laboratory':
+        return this.laboratoryService.remove(target.id);
+      case 'supplier':
+        return this.supplierService.remove(target.id);
+    }
+  }
+
+  private async planControlAgency(id: ControlAgencyId): Promise<CascadeRemovalResult | null> {
     if (!(await this.controlAgencyService.get(id))) return null;
 
     const reagents = await this.reagentService.findByControlAgencyId(id);
@@ -107,58 +110,47 @@ export class NamedOptionCascadeRemovalService {
     const packageIds = new Set(packages.map((item) => item.id));
     const vials = await this.vialService.findByPackageIds(packageIds);
 
-    return this.createPlan(reagentIds, packageIds, new Set(vials.map((item) => item.id)), () =>
-      this.controlAgencyService.remove(id),
-    );
+    return this.createResult(reagentIds, packageIds, new Set(vials.map((item) => item.id)));
   }
 
-  private async buildAcquirerPlan(id: AcquirerId): Promise<RemovalPlan | null> {
+  private async planAcquirer(id: AcquirerId): Promise<CascadeRemovalResult | null> {
     if (!(await this.acquirerService.get(id))) return null;
 
     const packages = await this.packageService.findByAcquirerId(id);
     const packageIds = new Set(packages.map((item) => item.id));
     const vials = await this.vialService.findByPackageIds(packageIds);
 
-    return this.createPlan(new Set(), packageIds, new Set(vials.map((item) => item.id)), () =>
-      this.acquirerService.remove(id),
-    );
+    return this.createResult(new Set(), packageIds, new Set(vials.map((item) => item.id)));
   }
 
-  private async buildLaboratoryPlan(id: LaboratoryId): Promise<RemovalPlan | null> {
+  private async planLaboratory(id: LaboratoryId): Promise<CascadeRemovalResult | null> {
     if (!(await this.laboratoryService.get(id))) return null;
 
     const vials = await this.vialService.findByLaboratoryId(id);
-    const vialIds = new Set(vials.map((item) => item.id));
 
-    return this.createPlan(new Set(), new Set(), vialIds, () => this.laboratoryService.remove(id));
+    return this.createResult(new Set(), new Set(), new Set(vials.map((item) => item.id)));
   }
 
-  private async buildSupplierPlan(id: SupplierId): Promise<RemovalPlan | null> {
+  private async planSupplier(id: SupplierId): Promise<CascadeRemovalResult | null> {
     if (!(await this.supplierService.get(id))) return null;
 
     const packages = await this.packageService.findBySupplierId(id);
     const packageIds = new Set(packages.map((item) => item.id));
     const vials = await this.vialService.findByPackageIds(packageIds);
 
-    return this.createPlan(new Set(), packageIds, new Set(vials.map((item) => item.id)), () =>
-      this.supplierService.remove(id),
-    );
+    return this.createResult(new Set(), packageIds, new Set(vials.map((item) => item.id)));
   }
 
-  private createPlan(
+  private createResult(
     reagentIds: ReadonlySet<ReagentId>,
     packageIds: ReadonlySet<PackageId>,
     vialIds: ReadonlySet<VialId>,
-    removeOption: () => Promise<boolean>,
-  ): RemovalPlan {
+  ): CascadeRemovalResult {
     return {
-      result: {
-        reagentIds,
-        packageIds,
-        vialIds,
-        impact: { reagents: reagentIds.size, packages: packageIds.size, vials: vialIds.size },
-      },
-      removeOption,
+      reagentIds,
+      packageIds,
+      vialIds,
+      impact: { reagents: reagentIds.size, packages: packageIds.size, vials: vialIds.size },
     };
   }
 }
