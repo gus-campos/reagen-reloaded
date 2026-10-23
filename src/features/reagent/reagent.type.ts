@@ -1,13 +1,7 @@
+import type z from 'zod';
 import type { Entity, Id } from '@/infrastructure/database/persistence.types';
-import type { ControlAgencyId } from '@/features/named-options/options.type';
-import type { Size } from '@/shared/types/size.type';
-import type { Dimension } from '@/shared/types/unit.type';
+import type { reagentSchema } from '@/features/reagent/reagent-schema';
 
 export type ReagentId = Id<'Reagent'>;
 
-export type Reagent = Entity<ReagentId> & {
-  name: string;
-  dimension: Dimension;
-  sizes: Size[];
-  controlAgencyId: ControlAgencyId | null;
-};
+export type Reagent = Entity<ReagentId> & z.infer<typeof reagentSchema>;
