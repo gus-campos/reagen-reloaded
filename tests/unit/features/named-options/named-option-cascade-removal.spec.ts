@@ -1,69 +1,43 @@
 import { describe, expect, it } from 'vitest';
 import { generateId, now } from '@/infrastructure/database/persistence.dependencies';
 import { Dimension, Unit } from '@/shared/types/unit.type';
+import { createInMemoryCascadeRemoval } from '@tests/unit/features/named-options/named-option.test-utils';
 import { InMemoryRepository } from '@tests/utils/in-memory.repository';
-import {
-  InMemoryPackageRepository,
-  InMemoryReagentRepository,
-  InMemoryVialRepository,
-} from '@tests/utils/in-memory-feature-repositories';
-import {
-  NamedOptionCascadeRemovalService,
-  type TransactionRunner,
-} from '@/features/named-options/named-option-cascade-removal.service';
-import { NamedOptionService } from '@/features/named-options/named-option.service';
+import { AcquirerService } from '@/features/named-options/acquirer.service';
+import { ControlAgencyService } from '@/features/named-options/control-agency.service';
+import { LaboratoryService } from '@/features/named-options/laboratory.service';
 import type {
   Acquirer,
   ControlAgency,
   Laboratory,
   Supplier,
 } from '@/features/named-options/options.type';
-import { PackageService } from '@/features/package/package.service';
+import { SupplierService } from '@/features/named-options/supplier.service';
+import type { PackageService } from '@/features/package/package.service';
 import type { Package } from '@/features/package/package.type';
-import { ReagentService } from '@/features/reagent/reagent.service';
+import type { ReagentService } from '@/features/reagent/reagent.service';
 import type { Reagent } from '@/features/reagent/reagent.type';
-import { VialService } from '@/features/vial/vial.service';
 
 function createSut() {
-  const controlAgencyService = new NamedOptionService<ControlAgency>(
-    new InMemoryRepository<ControlAgency>(generateId, now),
-  );
-  const acquirerService = new NamedOptionService<Acquirer>(
-    new InMemoryRepository<Acquirer>(generateId, now),
-  );
-  const laboratoryService = new NamedOptionService<Laboratory>(
-    new InMemoryRepository<Laboratory>(generateId, now),
-  );
-  const supplierService = new NamedOptionService<Supplier>(
-    new InMemoryRepository<Supplier>(generateId, now),
-  );
-  const reagentService = new ReagentService(new InMemoryReagentRepository(generateId, now));
-  const packageService = new PackageService(new InMemoryPackageRepository(generateId, now));
-  const vialService = new VialService(new InMemoryVialRepository(generateId, now));
-  let transactionCount = 0;
-  const runInTransaction: TransactionRunner = async (operation) => {
-    transactionCount++;
-    return operation();
-  };
+  const cascade = createInMemoryCascadeRemoval();
 
   return {
-    controlAgencyService,
-    acquirerService,
-    laboratoryService,
-    supplierService,
-    reagentService,
-    packageService,
-    vialService,
-    transactionCount: () => transactionCount,
-    service: new NamedOptionCascadeRemovalService(
-      runInTransaction,
-      controlAgencyService,
-      acquirerService,
-      laboratoryService,
-      supplierService,
-      reagentService,
-      packageService,
-      vialService,
+    ...cascade,
+    controlAgencyService: new ControlAgencyService(
+      new InMemoryRepository<ControlAgency>(generateId, now),
+      cascade.dependencies,
+    ),
+    acquirerService: new AcquirerService(
+      new InMemoryRepository<Acquirer>(generateId, now),
+      cascade.dependencies,
+    ),
+    laboratoryService: new LaboratoryService(
+      new InMemoryRepository<Laboratory>(generateId, now),
+      cascade.dependencies,
+    ),
+    supplierService: new SupplierService(
+      new InMemoryRepository<Supplier>(generateId, now),
+      cascade.dependencies,
     ),
   };
 }
@@ -97,7 +71,7 @@ async function createPackage(
   });
 }
 
-describe('NamedOptionCascadeRemovalService', () => {
+describe('named option cascade removal', () => {
   it('removes a control agency and all its reagents, packages and vials', async () => {
     const sut = createSut();
     const agency = await sut.controlAgencyService.create('Exército');
@@ -110,12 +84,12 @@ describe('NamedOptionCascadeRemovalService', () => {
       outDate: null,
     });
 
-    await expect(sut.service.preview({ kind: 'control-agency', id: agency.id })).resolves.toEqual({
+    await expect(sut.controlAgencyService.previewRemoval(agency.id)).resolves.toEqual({
       reagents: 1,
       packages: 1,
       vials: 1,
     });
-    await expect(sut.service.remove({ kind: 'control-agency', id: agency.id })).resolves.toEqual({
+    await expect(sut.controlAgencyService.removeWithCascade(agency.id)).resolves.toEqual({
       impact: { reagents: 1, packages: 1, vials: 1 },
       reagentIds: new Set([reagent.id]),
       packageIds: new Set([packageItem.id]),
@@ -144,7 +118,7 @@ describe('NamedOptionCascadeRemovalService', () => {
       outDate: null,
     });
 
-    await expect(sut.service.remove({ kind: 'acquirer', id: acquirer.id })).resolves.toMatchObject({
+    await expect(sut.acquirerService.removeWithCascade(acquirer.id)).resolves.toMatchObject({
       impact: { reagents: 0, packages: 1, vials: 1 },
     });
 
@@ -167,7 +141,7 @@ describe('NamedOptionCascadeRemovalService', () => {
       outDate: null,
     });
 
-    await expect(sut.service.remove({ kind: 'supplier', id: supplier.id })).resolves.toMatchObject({
+    await expect(sut.supplierService.removeWithCascade(supplier.id)).resolves.toMatchObject({
       impact: { reagents: 0, packages: 1, vials: 1 },
     });
 
@@ -186,9 +160,7 @@ describe('NamedOptionCascadeRemovalService', () => {
       outDate: null,
     });
 
-    await expect(
-      sut.service.remove({ kind: 'laboratory', id: laboratory.id }),
-    ).resolves.toMatchObject({
+    await expect(sut.laboratoryService.removeWithCascade(laboratory.id)).resolves.toMatchObject({
       impact: { reagents: 0, packages: 0, vials: 1 },
     });
 

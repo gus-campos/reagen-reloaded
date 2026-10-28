@@ -3,13 +3,12 @@ import {
   acquirerService,
   controlAgencyService,
   laboratoryService,
-  namedOptionCascadeRemovalService,
   packageService,
   reagentService,
   supplierService,
   vialService,
 } from '@/app/composition/services';
-import type { CascadeRemovalResult } from '@/features/named-options/named-option-cascade-removal.service';
+import type { CascadeRemovalResult } from '@/features/named-options/cascade-removal.type';
 import type { NamedOptionKind } from '@/features/named-options/named-option-kind';
 import {
   useNamedOptionCrud,
@@ -17,45 +16,25 @@ import {
 } from '@/features/named-options/use-named-option-crud';
 import { useEntityCrud } from '@/shared/composables/use-entity-crud';
 
-function evictCascadeRemoval(result: CascadeRemovalResult): void {
+function syncStoresAfterCascade(result: CascadeRemovalResult): void {
   useReagentStore().evict(result.reagentIds);
   usePackageStore().evict(result.packageIds);
   useVialStore().evict(result.vialIds);
 }
 
 export const useControlAgencyStore = defineStore('control-agencies', () =>
-  useNamedOptionCrud(
-    'control-agency',
-    controlAgencyService,
-    namedOptionCascadeRemovalService,
-    evictCascadeRemoval,
-  ),
+  useNamedOptionCrud(controlAgencyService, syncStoresAfterCascade),
 );
 export const useAcquirerStore = defineStore('acquirers', () =>
-  useNamedOptionCrud(
-    'acquirer',
-    acquirerService,
-    namedOptionCascadeRemovalService,
-    evictCascadeRemoval,
-  ),
+  useNamedOptionCrud(acquirerService, syncStoresAfterCascade),
 );
 export const useLaboratoryStore = defineStore('laboratories', () =>
-  useNamedOptionCrud(
-    'laboratory',
-    laboratoryService,
-    namedOptionCascadeRemovalService,
-    evictCascadeRemoval,
-  ),
+  useNamedOptionCrud(laboratoryService, syncStoresAfterCascade),
 );
 export const usePackageStore = defineStore('packages', () => useEntityCrud(packageService));
 export const useReagentStore = defineStore('reagents', () => useEntityCrud(reagentService));
 export const useSupplierStore = defineStore('suppliers', () =>
-  useNamedOptionCrud(
-    'supplier',
-    supplierService,
-    namedOptionCascadeRemovalService,
-    evictCascadeRemoval,
-  ),
+  useNamedOptionCrud(supplierService, syncStoresAfterCascade),
 );
 export const useVialStore = defineStore('vials', () => useEntityCrud(vialService));
 

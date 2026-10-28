@@ -1,14 +1,34 @@
 import type { Id } from '@/infrastructure/database/persistence.types';
 import type { CreationDto, Repository, UpdateDto } from '@/infrastructure/database/repository';
+import type {
+  CascadeRemovalDependencies,
+  CascadeRemovalImpact,
+  CascadeRemovalResult,
+} from '@/features/named-options/cascade-removal.type';
 import type { NamedOption } from '@/features/named-options/named-option.type';
+import type { PackageId } from '@/features/package/package.type';
+import type { ReagentId } from '@/features/reagent/reagent.type';
+import type { VialId } from '@/features/vial/vial.type';
 import { EntityService } from '@/shared/services/entity.service';
 
-export class NamedOptionService<
+type RemovalPlanIds = {
+  reagentIds?: ReadonlySet<ReagentId>;
+  packageIds?: ReadonlySet<PackageId>;
+  vialIds?: ReadonlySet<VialId>;
+};
+
+export abstract class NamedOptionService<
   TEntity extends NamedOption<Id<string>>,
 > extends EntityService<TEntity> {
-  constructor(repository: Repository<TEntity>) {
+  constructor(
+    repository: Repository<TEntity>,
+    protected readonly cascadeRemovalDependencies: CascadeRemovalDependencies,
+  ) {
     super(repository);
   }
+
+  // Lista os registros que seriam removidos junto com a opção; null se ela não existir.
+  abstract planRemoval(id: TEntity['id']): Promise<CascadeRemovalResult | null>;
 
   create(name: string): Promise<TEntity>;
   create(dto: CreationDto<TEntity>): Promise<TEntity>;
@@ -48,6 +68,40 @@ export class NamedOptionService<
       throw new Error('Já existe uma opção com este nome.');
     }
     return super.update(id, { ...dto, name: normalizedName });
+  }
+
+  async previewRemoval(id: TEntity['id']): Promise<CascadeRemovalImpact | null> {
+    const plan = await this.planRemoval(id);
+    return plan?.impact ?? null;
+  }
+
+  // O plano é refeito dentro da transação para refletir o estado atual, não o do preview.
+  removeWithCascade(id: TEntity['id']): Promise<CascadeRemovalResult | null> {
+    const { runInTransaction, reagentService, packageService, vialService } = this.cascadeRemovalDependencies;
+
+    return runInTransaction(async () => {
+      const plan = await this.planRemoval(id);
+      if (!plan) return null;
+
+      const { vialIds, packageIds, reagentIds } = plan;
+      for (const vialId of vialIds) await vialService.remove(vialId);
+      for (const packageId of packageIds) await packageService.remove(packageId);
+      for (const reagentId of reagentIds) await reagentService.remove(reagentId);
+
+      await this.remove(id);
+
+      return plan;
+    });
+  }
+
+  protected createRemovalPlan(ids: RemovalPlanIds): CascadeRemovalResult {
+    const { reagentIds = new Set(), packageIds = new Set(), vialIds = new Set() } = ids;
+    return {
+      reagentIds,
+      packageIds,
+      vialIds,
+      impact: { reagents: reagentIds.size, packages: packageIds.size, vials: vialIds.size },
+    };
   }
 
   private normalizeName(name: string): string {

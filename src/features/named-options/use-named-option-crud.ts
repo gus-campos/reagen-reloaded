@@ -1,13 +1,7 @@
 import type {
   CascadeRemovalImpact,
   CascadeRemovalResult,
-  NamedOptionCascadeRemovalService,
-  NamedOptionRemovalTarget,
-} from '@/features/named-options/named-option-cascade-removal.service';
-import type {
-  NamedOptionByKind,
-  NamedOptionKind,
-} from '@/features/named-options/named-option-kind';
+} from '@/features/named-options/cascade-removal.type';
 import type { NamedOptionService } from '@/features/named-options/named-option.service';
 import type { NamedOption } from '@/features/named-options/named-option.type';
 import type { Id } from '@/infrastructure/database/persistence.types';
@@ -25,31 +19,23 @@ export interface NamedOptionStore {
   previewRemoval(id: Id<string>): Promise<CascadeRemovalImpact | null>;
 }
 
-export function useNamedOptionCrud<TKind extends NamedOptionKind>(
-  kind: TKind,
-  service: NamedOptionService<NamedOptionByKind[TKind]>,
-  removalService: NamedOptionCascadeRemovalService,
+export function useNamedOptionCrud<TEntity extends NamedOption<Id<string>>>(
+  service: NamedOptionService<TEntity>,
   onCascadeRemoved: (result: CascadeRemovalResult) => void,
 ) {
-  type OptionId = NamedOptionByKind[TKind]['id'];
-
-  // O TypeScript não correlaciona `kind` e `id` genéricos com a união discriminada.
-  const target = (id: OptionId) => ({ kind, id }) as NamedOptionRemovalTarget;
-
   const crud = useEntityCrud(service, {
     remove: async (id) => {
-      const result = await removalService.remove(target(id));
+      const result = await service.removeWithCascade(id);
       if (!result) return false;
 
-      // Importante para permitir evict dos itens excluídos, que do
-      // contrários sumiriam do banco, mas continuariam disponíveis na store
+      // Pode ser usado para sincronizar a store com o banco. Ver usos.
       onCascadeRemoved(result);
       return true;
     },
   });
 
-  function previewRemoval(id: OptionId): Promise<CascadeRemovalImpact | null> {
-    return removalService.preview(target(id));
+  function previewRemoval(id: TEntity['id']): Promise<CascadeRemovalImpact | null> {
+    return service.previewRemoval(id);
   }
 
   return { ...crud, previewRemoval };

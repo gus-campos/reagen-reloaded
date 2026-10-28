@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { computed, ref, watch } from 'vue';
   import { describeCascadeRemovalImpact } from '@/features/named-options/describe-cascade-removal-impact';
-  import type { CascadeRemovalImpact } from '@/features/named-options/named-option-cascade-removal.service';
+  import type { CascadeRemovalImpact } from '@/features/named-options/cascade-removal.type';
 
   const props = defineProps<{
     optionName: string;

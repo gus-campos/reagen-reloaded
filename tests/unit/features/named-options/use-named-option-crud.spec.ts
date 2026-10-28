@@ -2,47 +2,23 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { generateId, now } from '@/infrastructure/database/persistence.dependencies';
 import { Dimension, Unit } from '@/shared/types/unit.type';
+import { createInMemoryCascadeRemoval } from '@tests/unit/features/named-options/named-option.test-utils';
 import { InMemoryRepository } from '@tests/utils/in-memory.repository';
-import {
-  InMemoryPackageRepository,
-  InMemoryReagentRepository,
-  InMemoryVialRepository,
-} from '@tests/utils/in-memory-feature-repositories';
-import { NamedOptionCascadeRemovalService } from '@/features/named-options/named-option-cascade-removal.service';
-import { NamedOptionService } from '@/features/named-options/named-option.service';
-import type {
-  Acquirer,
-  ControlAgency,
-  Laboratory,
-  Supplier,
-} from '@/features/named-options/options.type';
+import { ControlAgencyService } from '@/features/named-options/control-agency.service';
+import type { ControlAgency } from '@/features/named-options/options.type';
 import { useNamedOptionCrud } from '@/features/named-options/use-named-option-crud';
-import { PackageService } from '@/features/package/package.service';
-import { ReagentService } from '@/features/reagent/reagent.service';
-import { VialService } from '@/features/vial/vial.service';
 import { useEntityCrud } from '@/shared/composables/use-entity-crud';
 
 function createSut() {
-  const controlAgencyService = new NamedOptionService<ControlAgency>(
+  const { reagentService, dependencies } = createInMemoryCascadeRemoval();
+  const controlAgencyService = new ControlAgencyService(
     new InMemoryRepository<ControlAgency>(generateId, now),
-  );
-  const reagentService = new ReagentService(new InMemoryReagentRepository(generateId, now));
-  const packageService = new PackageService(new InMemoryPackageRepository(generateId, now));
-  const vialService = new VialService(new InMemoryVialRepository(generateId, now));
-  const removalService = new NamedOptionCascadeRemovalService(
-    (operation) => operation(),
-    controlAgencyService,
-    new NamedOptionService<Acquirer>(new InMemoryRepository<Acquirer>(generateId, now)),
-    new NamedOptionService<Laboratory>(new InMemoryRepository<Laboratory>(generateId, now)),
-    new NamedOptionService<Supplier>(new InMemoryRepository<Supplier>(generateId, now)),
-    reagentService,
-    packageService,
-    vialService,
+    dependencies,
   );
 
   const useReagentStore = defineStore('reagents', () => useEntityCrud(reagentService));
   const useControlAgencyStore = defineStore('control-agencies', () =>
-    useNamedOptionCrud('control-agency', controlAgencyService, removalService, (result) =>
+    useNamedOptionCrud(controlAgencyService, (result) =>
       useReagentStore().evict(result.reagentIds),
     ),
   );

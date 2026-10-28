@@ -1,4 +1,4 @@
-import type { CascadeRemovalImpact } from '@/features/named-options/named-option-cascade-removal.service';
+import type { CascadeRemovalImpact } from '@/features/named-options/cascade-removal.type';
 
 const IMPACT_LABELS: Record<keyof CascadeRemovalImpact, [singular: string, plural: string]> = {
   reagents: ['reagente', 'reagentes'],
