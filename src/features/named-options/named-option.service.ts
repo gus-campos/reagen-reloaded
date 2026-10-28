@@ -75,9 +75,16 @@ export abstract class NamedOptionService<
     return plan?.impact ?? null;
   }
 
+  // Contrato herdado, mas sempre com a cascata: nenhum caminho público remove sem ela.
+  async remove(id: TEntity['id']): Promise<boolean> {
+    return (await this.removeWithCascade(id)) !== null;
+  }
+
+  // Mesma remoção do `remove`, devolvendo também o que foi removido junto.
   // O plano é refeito dentro da transação para refletir o estado atual, não o do preview.
   removeWithCascade(id: TEntity['id']): Promise<CascadeRemovalResult | null> {
-    const { runInTransaction, reagentService, packageService, vialService } = this.cascadeRemovalDependencies;
+    const { runInTransaction, reagentService, packageService, vialService } =
+      this.cascadeRemovalDependencies;
 
     return runInTransaction(async () => {
       const plan = await this.planRemoval(id);
@@ -88,7 +95,8 @@ export abstract class NamedOptionService<
       for (const packageId of packageIds) await packageService.remove(packageId);
       for (const reagentId of reagentIds) await reagentService.remove(reagentId);
 
-      await this.remove(id);
+      // `super`, pois `this.remove` entraria na cascata de novo.
+      await super.remove(id);
 
       return plan;
     });

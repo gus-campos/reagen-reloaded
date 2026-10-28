@@ -104,6 +104,25 @@ describe('named option cascade removal', () => {
     await expect(sut.reagentService.get(reagent.id, { getDeleted: true })).resolves.not.toBeNull();
   });
 
+  it('applies the cascade through the inherited remove as well', async () => {
+    const sut = createSut();
+    const agency = await sut.controlAgencyService.create('Exército');
+    const reagent = await createReagent(sut.reagentService, agency.id);
+
+    await expect(sut.controlAgencyService.remove(agency.id)).resolves.toBe(true);
+
+    expect(sut.transactionCount()).toBe(1);
+    await expect(sut.controlAgencyService.get(agency.id)).resolves.toBeNull();
+    await expect(sut.reagentService.get(reagent.id)).resolves.toBeNull();
+  });
+
+  it('returns false when removing an option that does not exist', async () => {
+    const sut = createSut();
+    const missingId = 'missing' as ControlAgency['id'];
+
+    await expect(sut.controlAgencyService.remove(missingId)).resolves.toBe(false);
+  });
+
   it('removes packages and vials associated with an acquirer, preserving reagents', async () => {
     const sut = createSut();
     const acquirer = await sut.acquirerService.create('Fapesp');
