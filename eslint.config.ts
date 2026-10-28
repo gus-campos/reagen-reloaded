@@ -29,6 +29,14 @@ export default defineConfigWithVueTs(
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
   {
+    name: 'app/unused-vars',
+    rules: {
+      // Permite descartar propriedades com rest: `const { omitted, ...rest } = value`.
+      '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
+    },
+  },
+
+  {
     name: 'app/absolute-imports',
     files: ['src/**/*.{vue,ts,mts,tsx}'],
     rules: {

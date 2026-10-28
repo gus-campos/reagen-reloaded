@@ -5,12 +5,13 @@
   import type { ControlAgency, ControlAgencyId } from '@/features/named-options/options.type';
   import { reagentSchema, sizesSchema } from '@/features/reagent/reagent-schema';
   import type { Reagent } from '@/features/reagent/reagent.type';
-  import type { CreationDto } from '@/infrastructure/database/repository';
+  import type { CreationDto, UpdateDto } from '@/infrastructure/database/repository';
   import type { Size } from '@/shared/types/size.type';
   import { Dimension, dimensionDefaultUnit, Unit, unitDimension } from '@/shared/types/unit.type';
   import { formatSize } from '@/shared/utils/format-size';
+  import { getSizeKey } from '@/shared/utils/get-size-key';
 
-  // CONTANTS
+  // CONSTANTS
 
   const DIMENSIONS = Object.values(Dimension);
   const UNITS = Object.values(Unit);
@@ -23,8 +24,9 @@
 
   // PROPS
 
-  defineProps<{
-    title: string;
+  const props = defineProps<{
+    // Define o modo: com reagente, edita a partir dos seus valores; sem, cria um novo.
+    reagentEdited: Reagent | null;
     controlAgencies: ControlAgency[];
     saving: boolean;
     error: string | null;
@@ -33,7 +35,8 @@
   // EMITS
 
   const emit = defineEmits<{
-    submit: [values: CreationDto<Reagent>];
+    create: [dto: CreationDto<Reagent>];
+    update: [dto: UpdateDto<Reagent>];
   }>();
 
   // MODELS
@@ -68,6 +71,18 @@
 
   // COMPUTEDS
 
+  const isEdition = computed(() => props.reagentEdited !== null);
+
+  const title = computed(() => (isEdition.value ? 'Editar reagente' : 'Novo reagente'));
+
+  // Tamanhos já persistidos que foram retirados no formulário: podem estar em uso.
+  const removedSizes = computed(() => {
+    if (!props.reagentEdited) return [];
+
+    const currentKeys = new Set(sizes.value.map(getSizeKey));
+    return props.reagentEdited.sizes.filter((size) => !currentKeys.has(getSizeKey(size)));
+  });
+
   const dimensionUnits = computed(() =>
     UNITS.filter((unit) => unitDimension[unit] === dimension.value),
   );
@@ -84,7 +99,7 @@
   watch(opened, (isOpened) => {
     if (!isOpened) return;
 
-    resetForm({ values: { ...INITIAL_VALUES, sizes: [] } });
+    resetForm({ values: initialValues() });
     resetDraft();
   });
 
@@ -95,6 +110,14 @@
   });
 
   // HELPERS
+
+  function initialValues(): CreationDto<Reagent> {
+    if (!props.reagentEdited) return { ...INITIAL_VALUES, sizes: [] };
+
+    const { name, dimension, sizes, controlAgencyId } = props.reagentEdited;
+    // Cópias simples, para não levar proxies reativos da store ao formulário.
+    return { name, dimension, sizes: sizes.map((size) => ({ ...size })), controlAgencyId };
+  }
 
   function resetDraft() {
     draftAmount.value = null;
@@ -123,7 +146,14 @@
   }
 
   const handleSubmit = validateSubmit((values) => {
-    emit('submit', values);
+    if (!isEdition.value) {
+      emit('create', values);
+      return;
+    }
+
+    // A dimensão não é editável, então fica fora do patch.
+    const { dimension, ...patch } = values;
+    emit('update', patch);
   });
 </script>
 
@@ -135,7 +165,7 @@
           <v-text-field v-model="name" label="Nome" autofocus :error-messages="nameError" />
 
           <div class="text-subtitle-2 mt-2">Dimensão</div>
-          <v-chip-group v-model="dimension" color="primary" mandatory column>
+          <v-chip-group v-model="dimension" color="primary" mandatory column :disabled="isEdition">
             <v-chip
               v-for="item in DIMENSIONS"
               :key="item"
@@ -150,7 +180,7 @@
           <v-chip-group column>
             <v-chip
               v-for="(size, index) in sizes"
-              :key="`${size.amount}-${size.unit}`"
+              :key="getSizeKey(size)"
               :text="formatSize(size)"
               color="primary"
               closable
@@ -188,6 +218,14 @@
               @click="handleAddSize"
             />
           </div>
+
+          <v-alert
+            v-if="removedSizes.length > 0"
+            class="mb-4"
+            type="warning"
+            variant="tonal"
+            :text="`Embalagens e frascos que usam ${removedSizes.map(formatSize).join(', ')} também serão removidos.`"
+          />
 
           <div class="text-subtitle-2 mt-2">Órgão de controle</div>
           <v-chip-group v-model="selectedControlAgencyId" color="primary" column>

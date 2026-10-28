@@ -4,25 +4,44 @@
   import ReagentFormDialog from '@/features/reagent/components/ReagentFormDialog.vue';
   import ReagentTable from '@/features/reagent/components/ReagentTable.vue';
   import type { Reagent } from '@/features/reagent/reagent.type';
-  import type { CreationDto } from '@/infrastructure/database/repository';
+  import type { CreationDto, UpdateDto } from '@/infrastructure/database/repository';
 
-  const store = useReagentStore();
+  const reagentStore = useReagentStore();
   const controlAgencyStore = useControlAgencyStore();
 
   const formOpened = ref(false);
+  const reagentEdited = ref<Reagent | null>(null);
   const saving = ref(false);
   const saveError = ref<string | null>(null);
 
   function handleOpenCreation() {
+    reagentEdited.value = null;
     saveError.value = null;
     formOpened.value = true;
   }
 
-  async function handleSubmit(values: CreationDto<Reagent>) {
+  function handleOpenEdition(reagent: Reagent) {
+    reagentEdited.value = reagent;
+    saveError.value = null;
+    formOpened.value = true;
+  }
+
+  function handleCreate(dto: CreationDto<Reagent>) {
+    return handleOperation(() => reagentStore.create(dto));
+  }
+
+  function handleUpdate(dto: UpdateDto<Reagent>) {
+    const reagent = reagentEdited.value;
+    if (!reagent) return;
+
+    return handleOperation(() => reagentStore.update(reagent.id, dto));
+  }
+
+  async function handleOperation(operation: () => Promise<unknown>) {
     saving.value = true;
     saveError.value = null;
     try {
-      await store.create(values);
+      await operation();
       formOpened.value = false;
     } catch (reason) {
       saveError.value = reason instanceof Error ? reason.message : String(reason);
@@ -33,7 +52,7 @@
 
   // O erro fica exposto em `store.error`; a falha não precisa interromper a view.
   onMounted(() => {
-    store.load().catch(() => {});
+    reagentStore.load().catch(() => {});
     controlAgencyStore.load().catch(() => {});
   });
 </script>
@@ -45,25 +64,27 @@
   </div>
 
   <v-alert
-    v-if="store.error"
+    v-if="reagentStore.error"
     class="mb-4"
     type="error"
     variant="tonal"
-    :text="store.error.message"
+    :text="reagentStore.error.message"
   />
 
   <reagent-table
-    :items="store.items"
+    :items="reagentStore.items"
     :control-agencies="controlAgencyStore.items"
-    :loading="store.loading"
+    :loading="reagentStore.loading"
+    @edit="handleOpenEdition"
   />
 
   <reagent-form-dialog
     v-model="formOpened"
-    title="Novo reagente"
+    :reagentEdited="reagentEdited"
     :control-agencies="controlAgencyStore.items"
     :saving="saving"
     :error="saveError"
-    @submit="handleSubmit"
+    @create="handleCreate"
+    @update="handleUpdate"
   />
 </template>
