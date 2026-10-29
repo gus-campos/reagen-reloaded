@@ -4,7 +4,7 @@ import { generateId, now } from '@/infrastructure/database/persistence.dependenc
 import { Dimension, Unit } from '@/shared/types/unit.type';
 
 import { InMemoryReagentRepository } from '@tests/utils/in-memory-feature-repositories';
-import { ReagentService } from '@/features/reagent/reagent.service';
+import { createInMemoryReagentService } from '@tests/unit/features/reagent/reagent.test-utils';
 import type { Reagent } from '@/features/reagent/reagent.type';
 import { useEntityCrud } from '@/shared/composables/use-entity-crud';
 
@@ -19,8 +19,8 @@ describe('useEntityCrud with reagents', () => {
   beforeEach(() => setActivePinia(createPinia()));
 
   function createStore() {
-    const service = new ReagentService(new InMemoryReagentRepository(generateId, now));
-    return defineStore('reagents', () => useEntityCrud(service))();
+    const { reagentService } = createInMemoryReagentService();
+    return defineStore('reagents', () => useEntityCrud(reagentService))();
   }
 
   it('loads and keeps the active reagents in reactive state', async () => {
@@ -63,7 +63,9 @@ describe('useEntityCrud with reagents', () => {
     }
 
     const store = defineStore('reagents', () =>
-      useEntityCrud(new ReagentService(new FailingRepository(generateId, now))),
+      useEntityCrud(
+        createInMemoryReagentService(new FailingRepository(generateId, now)).reagentService,
+      ),
     )();
 
     await expect(store.load()).rejects.toThrow('Banco indisponível');

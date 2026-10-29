@@ -4,6 +4,7 @@ import type { CreationDto, UpdateDto } from '@/infrastructure/database/repositor
 import { EntityService } from '@/shared/services/entity.service';
 
 export type EntityCrudOptions<TEntity extends Entity<Id<string>>> = {
+  update?: (id: TEntity['id'], dto: UpdateDto<TEntity>) => Promise<TEntity | null>;
   remove?: (id: TEntity['id']) => Promise<boolean>;
 };
 
@@ -11,7 +12,8 @@ export function useEntityCrud<TEntity extends Entity<Id<string>>>(
   service: EntityService<TEntity>,
   options: EntityCrudOptions<TEntity> = {},
 ) {
-  const removeEntity = options.remove ?? ((id: TEntity['id']) => service.remove(id));
+  const updateEntity = options.update ?? ((id, dto) => service.update(id, dto));
+  const removeEntity = options.remove ?? ((id) => service.remove(id));
   const items = ref([]) as Ref<TEntity[]>;
   const loading = ref(false);
   const error = ref<Error | null>(null);
@@ -41,7 +43,7 @@ export function useEntityCrud<TEntity extends Entity<Id<string>>>(
   }
 
   async function update(id: TEntity['id'], dto: UpdateDto<TEntity>): Promise<TEntity | null> {
-    const entity = await run(() => service.update(id, dto));
+    const entity = await run(() => updateEntity(id, dto));
     if (!entity) return null;
 
     const index = items.value.findIndex((item) => item.id === id);

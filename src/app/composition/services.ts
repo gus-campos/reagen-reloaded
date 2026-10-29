@@ -25,14 +25,11 @@ import { VialService } from '@/features/vial/vial.service';
 export const packageService = new PackageService(
   new DexiePackageRepository(appDatabase.packages, generateId, now),
 );
-export const reagentService = new ReagentService(
-  new DexieReagentRepository(appDatabase.reagents, generateId, now),
-);
 export const vialService = new VialService(
   new DexieVialRepository(appDatabase.vials, generateId, now),
 );
 
-const runNamedOptionTransaction: TransactionRunner = (operation) =>
+const runInTransaction: TransactionRunner = (operation) =>
   appDatabase.transaction(
     'rw',
     [
@@ -47,8 +44,13 @@ const runNamedOptionTransaction: TransactionRunner = (operation) =>
     operation,
   );
 
+export const reagentService = new ReagentService(
+  new DexieReagentRepository(appDatabase.reagents, generateId, now),
+  { runInTransaction, packageService, vialService },
+);
+
 const cascadeRemovalDependencies: CascadeRemovalDependencies = {
-  runInTransaction: runNamedOptionTransaction,
+  runInTransaction,
   reagentService,
   packageService,
   vialService,

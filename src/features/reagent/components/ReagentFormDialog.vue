@@ -75,14 +75,6 @@
 
   const title = computed(() => (isEdition.value ? 'Editar reagente' : 'Novo reagente'));
 
-  // Tamanhos já persistidos que foram retirados no formulário: podem estar em uso.
-  const removedSizes = computed(() => {
-    if (!props.reagentEdited) return [];
-
-    const currentKeys = new Set(sizes.value.map(getSizeKey));
-    return props.reagentEdited.sizes.filter((size) => !currentKeys.has(getSizeKey(size)));
-  });
-
   const dimensionUnits = computed(() =>
     UNITS.filter((unit) => unitDimension[unit] === dimension.value),
   );
@@ -218,14 +210,6 @@
               @click="handleAddSize"
             />
           </div>
-
-          <v-alert
-            v-if="removedSizes.length > 0"
-            class="mb-4"
-            type="warning"
-            variant="tonal"
-            :text="`Embalagens e frascos que usam ${removedSizes.map(formatSize).join(', ')} também serão removidos.`"
-          />
 
           <div class="text-subtitle-2 mt-2">Órgão de controle</div>
           <v-chip-group v-model="selectedControlAgencyId" color="primary" column>

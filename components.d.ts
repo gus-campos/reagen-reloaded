@@ -14,7 +14,7 @@ declare module 'vue' {
     App: typeof import('./src/app/App.vue')['default']
     AuthenticatedLayout: typeof import('./src/app/layouts/AuthenticatedLayout.vue')['default']
     BaseLayout: typeof import('./src/app/layouts/BaseLayout.vue')['default']
-    CascadeRemovalDialog: typeof import('./src/features/named-options/components/CascadeRemovalDialog.vue')['default']
+    CascadeRemovalDialog: typeof import('./src/shared/components/CascadeRemovalDialog.vue')['default']
     LoginView: typeof import('./src/features/authentication/LoginView.vue')['default']
     NamedOptionFormDialog: typeof import('./src/features/named-options/components/NamedOptionFormDialog.vue')['default']
     NamedOptionList: typeof import('./src/features/named-options/components/NamedOptionList.vue')['default']
